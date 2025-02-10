@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2021 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -174,9 +174,7 @@ typedef enum
     SDL_WINDOWEVENT_FOCUS_LOST,     /**< Window has lost keyboard focus */
     SDL_WINDOWEVENT_CLOSE,          /**< The window manager requests that the window be closed */
     SDL_WINDOWEVENT_TAKE_FOCUS,     /**< Window is being offered a focus (should SetWindowInputFocus() on itself or a subwindow, or ignore) */
-    SDL_WINDOWEVENT_HIT_TEST,       /**< Window had a hit test that wasn't SDL_HITTEST_NORMAL. */
-    SDL_WINDOWEVENT_ICCPROF_CHANGED,/**< The ICC profile of the window's display has changed. */
-    SDL_WINDOWEVENT_DISPLAY_CHANGED /**< Window has been moved to display data1. */
+    SDL_WINDOWEVENT_HIT_TEST        /**< Window had a hit test that wasn't SDL_HITTEST_NORMAL. */
 } SDL_WindowEventID;
 
 /**
@@ -187,8 +185,7 @@ typedef enum
     SDL_DISPLAYEVENT_NONE,          /**< Never used */
     SDL_DISPLAYEVENT_ORIENTATION,   /**< Display orientation has changed to data1 */
     SDL_DISPLAYEVENT_CONNECTED,     /**< Display has been added to the system */
-    SDL_DISPLAYEVENT_DISCONNECTED,  /**< Display has been removed from the system */
-    SDL_DISPLAYEVENT_MOVED          /**< Display has changed position */
+    SDL_DISPLAYEVENT_DISCONNECTED   /**< Display has been removed from the system */
 } SDL_DisplayEventID;
 
 /**
@@ -249,8 +246,7 @@ typedef enum
     SDL_GL_FRAMEBUFFER_SRGB_CAPABLE,
     SDL_GL_CONTEXT_RELEASE_BEHAVIOR,
     SDL_GL_CONTEXT_RESET_NOTIFICATION,
-    SDL_GL_CONTEXT_NO_ERROR,
-    SDL_GL_FLOATBUFFERS
+    SDL_GL_CONTEXT_NO_ERROR
 } SDL_GLattr;
 
 typedef enum
@@ -288,8 +284,6 @@ typedef enum
  * \returns a number >= 1 on success or a negative error code on failure; call
  *          SDL_GetError() for more information.
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_GetVideoDriver
  */
 extern DECLSPEC int SDLCALL SDL_GetNumVideoDrivers(void);
@@ -302,8 +296,6 @@ extern DECLSPEC int SDLCALL SDL_GetNumVideoDrivers(void);
  *
  * \param index the index of a video driver
  * \returns the name of the video driver with the given **index**.
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_GetNumVideoDrivers
  */
@@ -331,8 +323,6 @@ extern DECLSPEC const char *SDLCALL SDL_GetVideoDriver(int index);
  * \returns 0 on success or a negative error code on failure; call
  *          SDL_GetError() for more information.
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_GetNumVideoDrivers
  * \sa SDL_GetVideoDriver
  * \sa SDL_InitSubSystem
@@ -344,8 +334,6 @@ extern DECLSPEC int SDLCALL SDL_VideoInit(const char *driver_name);
  * Shut down the video subsystem, if initialized with SDL_VideoInit().
  *
  * This function closes all windows, and restores the original video mode.
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_VideoInit
  */
@@ -400,8 +388,6 @@ extern DECLSPEC const char * SDLCALL SDL_GetDisplayName(int displayIndex);
  * \returns 0 on success or a negative error code on failure; call
  *          SDL_GetError() for more information.
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_GetNumVideoDisplays
  */
 extern DECLSPEC int SDLCALL SDL_GetDisplayBounds(int displayIndex, SDL_Rect * rect);
@@ -446,15 +432,6 @@ extern DECLSPEC int SDLCALL SDL_GetDisplayUsableBounds(int displayIndex, SDL_Rec
  * A failure of this function usually means that either no DPI information is
  * available or the `displayIndex` is out of range.
  *
- * **WARNING**: This reports the DPI that the hardware reports, and it is not
- * always reliable! It is almost always better to use SDL_GetWindowSize() to
- * find the window size, which might be in logical points instead of pixels,
- * and then SDL_GL_GetDrawableSize(), SDL_Vulkan_GetDrawableSize(),
- * SDL_Metal_GetDrawableSize(), or SDL_GetRendererOutputSize(), and compare
- * the two values to get an actual scaling value between the two. We will be
- * rethinking how high-dpi details should be managed in SDL3 to make things
- * more consistent, reliable, and clear.
- *
  * \param displayIndex the index of the display from which DPI information
  *                     should be queried
  * \param ddpi a pointer filled in with the diagonal DPI of the display; may
@@ -478,8 +455,6 @@ extern DECLSPEC int SDLCALL SDL_GetDisplayDPI(int displayIndex, float * ddpi, fl
  * \param displayIndex the index of the display to query
  * \returns The SDL_DisplayOrientation enum value of the display, or
  *          `SDL_ORIENTATION_UNKNOWN` if it isn't available.
- *
- * \since This function is available since SDL 2.0.9.
  *
  * \sa SDL_GetNumVideoDisplays
  */
@@ -520,8 +495,6 @@ extern DECLSPEC int SDLCALL SDL_GetNumDisplayModes(int displayIndex);
  * \returns 0 on success or a negative error code on failure; call
  *          SDL_GetError() for more information.
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_GetNumDisplayModes
  */
 extern DECLSPEC int SDLCALL SDL_GetDisplayMode(int displayIndex, int modeIndex,
@@ -540,8 +513,6 @@ extern DECLSPEC int SDLCALL SDL_GetDisplayMode(int displayIndex, int modeIndex,
  *             mode
  * \returns 0 on success or a negative error code on failure; call
  *          SDL_GetError() for more information.
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_GetCurrentDisplayMode
  * \sa SDL_GetDisplayMode
@@ -562,8 +533,6 @@ extern DECLSPEC int SDLCALL SDL_GetDesktopDisplayMode(int displayIndex, SDL_Disp
  *             mode
  * \returns 0 on success or a negative error code on failure; call
  *          SDL_GetError() for more information.
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_GetDesktopDisplayMode
  * \sa SDL_GetDisplayMode
@@ -591,41 +560,10 @@ extern DECLSPEC int SDLCALL SDL_GetCurrentDisplayMode(int displayIndex, SDL_Disp
  * \returns the passed in value `closest` or NULL if no matching video mode
  *          was available; call SDL_GetError() for more information.
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_GetDisplayMode
  * \sa SDL_GetNumDisplayModes
  */
 extern DECLSPEC SDL_DisplayMode * SDLCALL SDL_GetClosestDisplayMode(int displayIndex, const SDL_DisplayMode * mode, SDL_DisplayMode * closest);
-
-/**
- * Get the index of the display containing a point
- *
- * \param point the point to query
- * \returns the index of the display containing the point or a negative error
- *          code on failure; call SDL_GetError() for more information.
- *
- * \since This function is available since SDL 2.24.0.
- *
- * \sa SDL_GetDisplayBounds
- * \sa SDL_GetNumVideoDisplays
- */
-extern DECLSPEC int SDLCALL SDL_GetPointDisplayIndex(const SDL_Point * point);
-
-/**
- * Get the index of the display primarily containing a rect
- *
- * \param rect the rect to query
- * \returns the index of the display entirely containing the rect or closest
- *          to the center of the rect on success or a negative error code on
- *          failure; call SDL_GetError() for more information.
- *
- * \since This function is available since SDL 2.24.0.
- *
- * \sa SDL_GetDisplayBounds
- * \sa SDL_GetNumVideoDisplays
- */
-extern DECLSPEC int SDLCALL SDL_GetRectDisplayIndex(const SDL_Rect * rect);
 
 /**
  * Get the index of the display associated with a window.
@@ -634,8 +572,6 @@ extern DECLSPEC int SDLCALL SDL_GetRectDisplayIndex(const SDL_Rect * rect);
  * \returns the index of the display containing the center of the window on
  *          success or a negative error code on failure; call SDL_GetError()
  *          for more information.
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_GetDisplayBounds
  * \sa SDL_GetNumVideoDisplays
@@ -656,8 +592,6 @@ extern DECLSPEC int SDLCALL SDL_GetWindowDisplayIndex(SDL_Window * window);
  * \returns 0 on success or a negative error code on failure; call
  *          SDL_GetError() for more information.
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_GetWindowDisplayMode
  * \sa SDL_SetWindowFullscreen
  */
@@ -673,27 +607,11 @@ extern DECLSPEC int SDLCALL SDL_SetWindowDisplayMode(SDL_Window * window,
  * \returns 0 on success or a negative error code on failure; call
  *          SDL_GetError() for more information.
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_SetWindowDisplayMode
  * \sa SDL_SetWindowFullscreen
  */
 extern DECLSPEC int SDLCALL SDL_GetWindowDisplayMode(SDL_Window * window,
                                                      SDL_DisplayMode * mode);
-
-/**
- * Get the raw ICC profile data for the screen the window is currently on.
- *
- * Data returned should be freed with SDL_free.
- *
- * \param window the window to query
- * \param size the size of the ICC profile
- * \returns the raw ICC profile data on success or NULL on failure; call
- *          SDL_GetError() for more information.
- *
- * \since This function is available since SDL 2.0.18.
- */
-extern DECLSPEC void* SDLCALL SDL_GetWindowICCProfile(SDL_Window * window, size_t* size);
 
 /**
  * Get the pixel format associated with the window.
@@ -702,8 +620,6 @@ extern DECLSPEC void* SDLCALL SDL_GetWindowICCProfile(SDL_Window * window, size_
  * \returns the pixel format of the window on success or
  *          SDL_PIXELFORMAT_UNKNOWN on failure; call SDL_GetError() for more
  *          information.
- *
- * \since This function is available since SDL 2.0.0.
  */
 extern DECLSPEC Uint32 SDLCALL SDL_GetWindowPixelFormat(SDL_Window * window);
 
@@ -737,10 +653,7 @@ extern DECLSPEC Uint32 SDLCALL SDL_GetWindowPixelFormat(SDL_Window * window);
  * in pixels may differ from its size in screen coordinates on platforms with
  * high-DPI support (e.g. iOS and macOS). Use SDL_GetWindowSize() to query the
  * client area's size in screen coordinates, and SDL_GL_GetDrawableSize() or
- * SDL_GetRendererOutputSize() to query the drawable size in pixels. Note that
- * when this flag is set, the drawable size can vary after the window is
- * created and should be queried after major window events such as when the
- * window is resized or moved between displays.
+ * SDL_GetRendererOutputSize() to query the drawable size in pixels.
  *
  * If the window is set fullscreen, the width and height parameters `w` and
  * `h` will not be used. However, invalid size parameters (e.g. too large) may
@@ -794,8 +707,6 @@ extern DECLSPEC SDL_Window * SDLCALL SDL_CreateWindow(const char *title,
  * \returns the window that was created or NULL on failure; call
  *          SDL_GetError() for more information.
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_CreateWindow
  * \sa SDL_DestroyWindow
  */
@@ -827,8 +738,6 @@ extern DECLSPEC Uint32 SDLCALL SDL_GetWindowID(SDL_Window * window);
  * \returns the window associated with `id` or NULL if it doesn't exist; call
  *          SDL_GetError() for more information.
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_GetWindowID
  */
 extern DECLSPEC SDL_Window * SDLCALL SDL_GetWindowFromID(Uint32 id);
@@ -838,8 +747,6 @@ extern DECLSPEC SDL_Window * SDLCALL SDL_GetWindowFromID(Uint32 id);
  *
  * \param window the window to query
  * \returns a mask of the SDL_WindowFlags associated with `window`
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_CreateWindow
  * \sa SDL_HideWindow
@@ -859,8 +766,6 @@ extern DECLSPEC Uint32 SDLCALL SDL_GetWindowFlags(SDL_Window * window);
  * \param window the window to change
  * \param title the desired window title in UTF-8 format
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_GetWindowTitle
  */
 extern DECLSPEC void SDLCALL SDL_SetWindowTitle(SDL_Window * window,
@@ -873,8 +778,6 @@ extern DECLSPEC void SDLCALL SDL_SetWindowTitle(SDL_Window * window,
  * \returns the title of the window in UTF-8 format or "" if there is no
  *          title.
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_SetWindowTitle
  */
 extern DECLSPEC const char *SDLCALL SDL_GetWindowTitle(SDL_Window * window);
@@ -884,8 +787,6 @@ extern DECLSPEC const char *SDLCALL SDL_GetWindowTitle(SDL_Window * window);
  *
  * \param window the window to change
  * \param icon an SDL_Surface structure containing the icon for the window
- *
- * \since This function is available since SDL 2.0.0.
  */
 extern DECLSPEC void SDLCALL SDL_SetWindowIcon(SDL_Window * window,
                                                SDL_Surface * icon);
@@ -900,8 +801,6 @@ extern DECLSPEC void SDLCALL SDL_SetWindowIcon(SDL_Window * window,
  * \param userdata the associated pointer
  * \returns the previous value associated with `name`.
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_GetWindowData
  */
 extern DECLSPEC void* SDLCALL SDL_SetWindowData(SDL_Window * window,
@@ -914,8 +813,6 @@ extern DECLSPEC void* SDLCALL SDL_SetWindowData(SDL_Window * window,
  * \param window the window to query
  * \param name the name of the pointer
  * \returns the value associated with `name`.
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_SetWindowData
  */
@@ -933,8 +830,6 @@ extern DECLSPEC void *SDLCALL SDL_GetWindowData(SDL_Window * window,
  * \param y the y coordinate of the window in screen coordinates, or
  *          `SDL_WINDOWPOS_CENTERED` or `SDL_WINDOWPOS_UNDEFINED`
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_GetWindowPosition
  */
 extern DECLSPEC void SDLCALL SDL_SetWindowPosition(SDL_Window * window,
@@ -951,8 +846,6 @@ extern DECLSPEC void SDLCALL SDL_SetWindowPosition(SDL_Window * window,
  *          coordinates, may be NULL
  * \param y a pointer filled in with the y position of the window, in screen
  *          coordinates, may be NULL
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_SetWindowPosition
  */
@@ -975,8 +868,6 @@ extern DECLSPEC void SDLCALL SDL_GetWindowPosition(SDL_Window * window,
  *          > 0
  * \param h the height of the window in pixels, in screen coordinates, must be
  *          > 0
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_GetWindowSize
  * \sa SDL_SetWindowDisplayMode
@@ -1001,8 +892,6 @@ extern DECLSPEC void SDLCALL SDL_SetWindowSize(SDL_Window * window, int w,
  *          coordinates, may be NULL
  * \param h a pointer filled in with the height of the window, in screen
  *          coordinates, may be NULL
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_GL_GetDrawableSize
  * \sa SDL_Vulkan_GetDrawableSize
@@ -1048,34 +937,11 @@ extern DECLSPEC int SDLCALL SDL_GetWindowBordersSize(SDL_Window * window,
                                                      int *bottom, int *right);
 
 /**
- * Get the size of a window in pixels.
- *
- * This may differ from SDL_GetWindowSize() if we're rendering to a high-DPI
- * drawable, i.e. the window was created with `SDL_WINDOW_ALLOW_HIGHDPI` on a
- * platform with high-DPI support (Apple calls this "Retina"), and not
- * disabled by the `SDL_HINT_VIDEO_HIGHDPI_DISABLED` hint.
- *
- * \param window the window from which the drawable size should be queried
- * \param w a pointer to variable for storing the width in pixels, may be NULL
- * \param h a pointer to variable for storing the height in pixels, may be
- *          NULL
- *
- * \since This function is available since SDL 2.26.0.
- *
- * \sa SDL_CreateWindow
- * \sa SDL_GetWindowSize
- */
-extern DECLSPEC void SDLCALL SDL_GetWindowSizeInPixels(SDL_Window * window,
-                                                       int *w, int *h);
-
-/**
  * Set the minimum size of a window's client area.
  *
  * \param window the window to change
  * \param min_w the minimum width of the window in pixels
  * \param min_h the minimum height of the window in pixels
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_GetWindowMinimumSize
  * \sa SDL_SetWindowMaximumSize
@@ -1092,8 +958,6 @@ extern DECLSPEC void SDLCALL SDL_SetWindowMinimumSize(SDL_Window * window,
  * \param h a pointer filled in with the minimum height of the window, may be
  *          NULL
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_GetWindowMaximumSize
  * \sa SDL_SetWindowMinimumSize
  */
@@ -1106,8 +970,6 @@ extern DECLSPEC void SDLCALL SDL_GetWindowMinimumSize(SDL_Window * window,
  * \param window the window to change
  * \param max_w the maximum width of the window in pixels
  * \param max_h the maximum height of the window in pixels
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_GetWindowMaximumSize
  * \sa SDL_SetWindowMinimumSize
@@ -1123,8 +985,6 @@ extern DECLSPEC void SDLCALL SDL_SetWindowMaximumSize(SDL_Window * window,
  *          NULL
  * \param h a pointer filled in with the maximum height of the window, may be
  *          NULL
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_GetWindowMinimumSize
  * \sa SDL_SetWindowMaximumSize
@@ -1171,28 +1031,24 @@ extern DECLSPEC void SDLCALL SDL_SetWindowResizable(SDL_Window * window,
                                                     SDL_bool resizable);
 
 /**
- * Set the window to always be above the others.
+ *  \brief Set the window to always be above the others.
  *
- * This will add or remove the window's `SDL_WINDOW_ALWAYS_ON_TOP` flag. This
- * will bring the window to the front and keep the window above the rest.
+ *  This will add or remove the window's `SDL_WINDOW_ALWAYS_ON_TOP`
+ *  flag. This will bring the window to the front and keep the window above
+ *  the rest.
  *
- * \param window The window of which to change the always on top state
- * \param on_top SDL_TRUE to set the window always on top, SDL_FALSE to
- *               disable
+ *  \param window The window of which to change the always on top state.
+ *  \param on_top  SDL_TRUE to set the window always on top, SDL_FALSE to disable.
  *
- * \since This function is available since SDL 2.0.16.
- *
- * \sa SDL_GetWindowFlags
+ *  \sa SDL_SetWindowAlwaysOnTop
  */
+
 extern DECLSPEC void SDLCALL SDL_SetWindowAlwaysOnTop(SDL_Window * window,
                                                       SDL_bool on_top);
-
 /**
  * Show a window.
  *
  * \param window the window to show
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_HideWindow
  * \sa SDL_RaiseWindow
@@ -1204,8 +1060,6 @@ extern DECLSPEC void SDLCALL SDL_ShowWindow(SDL_Window * window);
  *
  * \param window the window to hide
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_ShowWindow
  */
 extern DECLSPEC void SDLCALL SDL_HideWindow(SDL_Window * window);
@@ -1214,8 +1068,6 @@ extern DECLSPEC void SDLCALL SDL_HideWindow(SDL_Window * window);
  * Raise a window above other windows and set the input focus.
  *
  * \param window the window to raise
- *
- * \since This function is available since SDL 2.0.0.
  */
 extern DECLSPEC void SDLCALL SDL_RaiseWindow(SDL_Window * window);
 
@@ -1223,8 +1075,6 @@ extern DECLSPEC void SDLCALL SDL_RaiseWindow(SDL_Window * window);
  * Make a window as large as possible.
  *
  * \param window the window to maximize
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_MinimizeWindow
  * \sa SDL_RestoreWindow
@@ -1236,8 +1086,6 @@ extern DECLSPEC void SDLCALL SDL_MaximizeWindow(SDL_Window * window);
  *
  * \param window the window to minimize
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_MaximizeWindow
  * \sa SDL_RestoreWindow
  */
@@ -1247,8 +1095,6 @@ extern DECLSPEC void SDLCALL SDL_MinimizeWindow(SDL_Window * window);
  * Restore the size and position of a minimized or maximized window.
  *
  * \param window the window to restore
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_MaximizeWindow
  * \sa SDL_MinimizeWindow
@@ -1276,18 +1122,6 @@ extern DECLSPEC int SDLCALL SDL_SetWindowFullscreen(SDL_Window * window,
                                                     Uint32 flags);
 
 /**
- * Return whether the window has a surface associated with it.
- *
- * \returns SDL_TRUE if there is a surface associated with the window, or
- *          SDL_FALSE otherwise.
- *
- * \since This function is available since SDL 2.28.0.
- *
- * \sa SDL_GetWindowSurface
- */
-extern DECLSPEC SDL_bool SDLCALL SDL_HasWindowSurface(SDL_Window *window);
-
-/**
  * Get the SDL surface associated with the window.
  *
  * A new surface will be created with the optimal format for the window, if
@@ -1305,10 +1139,6 @@ extern DECLSPEC SDL_bool SDLCALL SDL_HasWindowSurface(SDL_Window *window);
  * \returns the surface associated with the window, or NULL on failure; call
  *          SDL_GetError() for more information.
  *
- * \since This function is available since SDL 2.0.0.
- *
- * \sa SDL_DestroyWindowSurface
- * \sa SDL_HasWindowSurface
  * \sa SDL_UpdateWindowSurface
  * \sa SDL_UpdateWindowSurfaceRects
  */
@@ -1326,8 +1156,6 @@ extern DECLSPEC SDL_Surface * SDLCALL SDL_GetWindowSurface(SDL_Window * window);
  * \returns 0 on success or a negative error code on failure; call
  *          SDL_GetError() for more information.
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_GetWindowSurface
  * \sa SDL_UpdateWindowSurfaceRects
  */
@@ -1341,19 +1169,12 @@ extern DECLSPEC int SDLCALL SDL_UpdateWindowSurface(SDL_Window * window);
  *
  * This function is equivalent to the SDL 1.2 API SDL_UpdateRects().
  *
- * Note that this function will update _at least_ the rectangles specified,
- * but this is only intended as an optimization; in practice, this might
- * update more of the screen (or all of the screen!), depending on what
- * method SDL uses to send pixels to the system.
- *
  * \param window the window to update
  * \param rects an array of SDL_Rect structures representing areas of the
- *              surface to copy, in pixels
+ *              surface to copy
  * \param numrects the number of rectangles
  * \returns 0 on success or a negative error code on failure; call
  *          SDL_GetError() for more information.
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_GetWindowSurface
  * \sa SDL_UpdateWindowSurface
@@ -1363,33 +1184,15 @@ extern DECLSPEC int SDLCALL SDL_UpdateWindowSurfaceRects(SDL_Window * window,
                                                          int numrects);
 
 /**
- * Destroy the surface associated with the window.
- *
- * \param window the window to update
- * \returns 0 on success or a negative error code on failure; call
- *          SDL_GetError() for more information.
- *
- * \since This function is available since SDL 2.28.0.
- *
- * \sa SDL_GetWindowSurface
- * \sa SDL_HasWindowSurface
- */
-extern DECLSPEC int SDLCALL SDL_DestroyWindowSurface(SDL_Window *window);
-
-/**
  * Set a window's input grab mode.
  *
- * When input is grabbed, the mouse is confined to the window. This function
- * will also grab the keyboard if `SDL_HINT_GRAB_KEYBOARD` is set. To grab the
- * keyboard without also grabbing the mouse, use SDL_SetWindowKeyboardGrab().
+ * When input is grabbed the mouse is confined to the window.
  *
  * If the caller enables a grab while another window is currently grabbed, the
  * other window loses its grab in favor of the caller's window.
  *
  * \param window the window for which the input grab mode should be set
  * \param grabbed SDL_TRUE to grab input or SDL_FALSE to release input
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_GetGrabbedWindow
  * \sa SDL_GetWindowGrab
@@ -1400,26 +1203,11 @@ extern DECLSPEC void SDLCALL SDL_SetWindowGrab(SDL_Window * window,
 /**
  * Set a window's keyboard grab mode.
  *
- * Keyboard grab enables capture of system keyboard shortcuts like Alt+Tab or
- * the Meta/Super key. Note that not all system keyboard shortcuts can be
- * captured by applications (one example is Ctrl+Alt+Del on Windows).
- *
- * This is primarily intended for specialized applications such as VNC clients
- * or VM frontends. Normal games should not use keyboard grab.
- *
- * When keyboard grab is enabled, SDL will continue to handle Alt+Tab when the
- * window is full-screen to ensure the user is not trapped in your
- * application. If you have a custom keyboard shortcut to exit fullscreen
- * mode, you may suppress this behavior with
- * `SDL_HINT_ALLOW_ALT_TAB_WHILE_GRABBED`.
- *
  * If the caller enables a grab while another window is currently grabbed, the
  * other window loses its grab in favor of the caller's window.
  *
  * \param window The window for which the keyboard grab mode should be set.
  * \param grabbed This is SDL_TRUE to grab keyboard, and SDL_FALSE to release.
- *
- * \since This function is available since SDL 2.0.16.
  *
  * \sa SDL_GetWindowKeyboardGrab
  * \sa SDL_SetWindowMouseGrab
@@ -1431,12 +1219,7 @@ extern DECLSPEC void SDLCALL SDL_SetWindowKeyboardGrab(SDL_Window * window,
 /**
  * Set a window's mouse grab mode.
  *
- * Mouse grab confines the mouse cursor to the window.
- *
  * \param window The window for which the mouse grab mode should be set.
- * \param grabbed This is SDL_TRUE to grab mouse, and SDL_FALSE to release.
- *
- * \since This function is available since SDL 2.0.16.
  *
  * \sa SDL_GetWindowMouseGrab
  * \sa SDL_SetWindowKeyboardGrab
@@ -1451,8 +1234,6 @@ extern DECLSPEC void SDLCALL SDL_SetWindowMouseGrab(SDL_Window * window,
  * \param window the window to query
  * \returns SDL_TRUE if input is grabbed, SDL_FALSE otherwise.
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_SetWindowGrab
  */
 extern DECLSPEC SDL_bool SDLCALL SDL_GetWindowGrab(SDL_Window * window);
@@ -1462,8 +1243,6 @@ extern DECLSPEC SDL_bool SDLCALL SDL_GetWindowGrab(SDL_Window * window);
  *
  * \param window the window to query
  * \returns SDL_TRUE if keyboard is grabbed, and SDL_FALSE otherwise.
- *
- * \since This function is available since SDL 2.0.16.
  *
  * \sa SDL_SetWindowKeyboardGrab
  * \sa SDL_GetWindowGrab
@@ -1475,8 +1254,6 @@ extern DECLSPEC SDL_bool SDLCALL SDL_GetWindowKeyboardGrab(SDL_Window * window);
  *
  * \param window the window to query
  * \returns SDL_TRUE if mouse is grabbed, and SDL_FALSE otherwise.
- *
- * \since This function is available since SDL 2.0.16.
  *
  * \sa SDL_SetWindowKeyboardGrab
  * \sa SDL_GetWindowGrab
@@ -1494,38 +1271,6 @@ extern DECLSPEC SDL_bool SDLCALL SDL_GetWindowMouseGrab(SDL_Window * window);
  * \sa SDL_SetWindowGrab
  */
 extern DECLSPEC SDL_Window * SDLCALL SDL_GetGrabbedWindow(void);
-
-/**
- * Confines the cursor to the specified area of a window.
- *
- * Note that this does NOT grab the cursor, it only defines the area a cursor
- * is restricted to when the window has mouse focus.
- *
- * \param window The window that will be associated with the barrier.
- * \param rect A rectangle area in window-relative coordinates. If NULL the
- *             barrier for the specified window will be destroyed.
- * \returns 0 on success or a negative error code on failure; call
- *          SDL_GetError() for more information.
- *
- * \since This function is available since SDL 2.0.18.
- *
- * \sa SDL_GetWindowMouseRect
- * \sa SDL_SetWindowMouseGrab
- */
-extern DECLSPEC int SDLCALL SDL_SetWindowMouseRect(SDL_Window * window, const SDL_Rect * rect);
-
-/**
- * Get the mouse confinement rectangle of a window.
- *
- * \param window The window to query
- * \returns A pointer to the mouse confinement rectangle of a window, or NULL
- *          if there isn't one.
- *
- * \since This function is available since SDL 2.0.18.
- *
- * \sa SDL_SetWindowMouseRect
- */
-extern DECLSPEC const SDL_Rect * SDLCALL SDL_GetWindowMouseRect(SDL_Window * window);
 
 /**
  * Set the brightness (gamma multiplier) for a given window's display.
@@ -1548,8 +1293,6 @@ extern DECLSPEC const SDL_Rect * SDLCALL SDL_GetWindowMouseRect(SDL_Window * win
  * \returns 0 on success or a negative error code on failure; call
  *          SDL_GetError() for more information.
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_GetWindowBrightness
  * \sa SDL_SetWindowGammaRamp
  */
@@ -1567,8 +1310,6 @@ extern DECLSPEC int SDLCALL SDL_SetWindowBrightness(SDL_Window * window, float b
  *               be queried
  * \returns the brightness for the display where 0.0 is completely dark and
  *          1.0 is normal brightness.
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_SetWindowBrightness
  */
@@ -1669,8 +1410,6 @@ extern DECLSPEC int SDLCALL SDL_SetWindowInputFocus(SDL_Window * window);
  * \returns 0 on success or a negative error code on failure; call
  *          SDL_GetError() for more information.
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_GetWindowGammaRamp
  */
 extern DECLSPEC int SDLCALL SDL_SetWindowGammaRamp(SDL_Window * window,
@@ -1696,8 +1435,6 @@ extern DECLSPEC int SDLCALL SDL_SetWindowGammaRamp(SDL_Window * window,
  *             translation table for the blue channel, or NULL
  * \returns 0 on success or a negative error code on failure; call
  *          SDL_GetError() for more information.
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_SetWindowGammaRamp
  */
@@ -1790,8 +1527,6 @@ extern DECLSPEC int SDLCALL SDL_SetWindowHitTest(SDL_Window * window,
  * \param operation the flash operation
  * \returns 0 on success or a negative error code on failure; call
  *          SDL_GetError() for more information.
- *
- * \since This function is available since SDL 2.0.16.
  */
 extern DECLSPEC int SDLCALL SDL_FlashWindow(SDL_Window * window, SDL_FlashOperation operation);
 
@@ -1802,8 +1537,6 @@ extern DECLSPEC int SDLCALL SDL_FlashWindow(SDL_Window * window, SDL_FlashOperat
  * the SDL error message to "Invalid window". See SDL_GetError().
  *
  * \param window the window to destroy
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_CreateWindow
  * \sa SDL_CreateWindowFrom
@@ -1845,9 +1578,6 @@ extern DECLSPEC void SDLCALL SDL_EnableScreenSaver(void);
  * If you disable the screensaver, it is automatically re-enabled when SDL
  * quits.
  *
- * The screensaver is disabled by default since SDL 2.0.2. Before SDL 2.0.2
- * the screensaver was enabled by default.
- *
  * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_EnableScreenSaver
@@ -1875,8 +1605,6 @@ extern DECLSPEC void SDLCALL SDL_DisableScreenSaver(void);
  *             default OpenGL library
  * \returns 0 on success or a negative error code on failure; call
  *          SDL_GetError() for more information.
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_GL_GetProcAddress
  * \sa SDL_GL_UnloadLibrary
@@ -1928,8 +1656,6 @@ extern DECLSPEC int SDLCALL SDL_GL_LoadLibrary(const char *path);
  * \returns a pointer to the named OpenGL function. The returned pointer
  *          should be cast to the appropriate function signature.
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_GL_ExtensionSupported
  * \sa SDL_GL_LoadLibrary
  * \sa SDL_GL_UnloadLibrary
@@ -1938,8 +1664,6 @@ extern DECLSPEC void *SDLCALL SDL_GL_GetProcAddress(const char *proc);
 
 /**
  * Unload the OpenGL library previously loaded by SDL_GL_LoadLibrary().
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_GL_LoadLibrary
  */
@@ -1990,8 +1714,6 @@ extern DECLSPEC void SDLCALL SDL_GL_ResetAttributes(void);
  * \returns 0 on success or a negative error code on failure; call
  *          SDL_GetError() for more information.
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_GL_GetAttribute
  * \sa SDL_GL_ResetAttributes
  */
@@ -2004,8 +1726,6 @@ extern DECLSPEC int SDLCALL SDL_GL_SetAttribute(SDL_GLattr attr, int value);
  * \param value a pointer filled in with the current value of `attr`
  * \returns 0 on success or a negative error code on failure; call
  *          SDL_GetError() for more information.
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_GL_ResetAttributes
  * \sa SDL_GL_SetAttribute
@@ -2027,8 +1747,6 @@ extern DECLSPEC int SDLCALL SDL_GL_GetAttribute(SDL_GLattr attr, int *value);
  * \returns the OpenGL context associated with `window` or NULL on error; call
  *          SDL_GetError() for more details.
  *
- * \since This function is available since SDL 2.0.0.
- *
  * \sa SDL_GL_DeleteContext
  * \sa SDL_GL_MakeCurrent
  */
@@ -2044,8 +1762,6 @@ extern DECLSPEC SDL_GLContext SDLCALL SDL_GL_CreateContext(SDL_Window *
  * \param context the OpenGL context to associate with the window
  * \returns 0 on success or a negative error code on failure; call
  *          SDL_GetError() for more information.
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_GL_CreateContext
  */
@@ -2109,8 +1825,13 @@ extern DECLSPEC void SDLCALL SDL_GL_GetDrawableSize(SDL_Window * window, int *w,
  * retry the call with 1 for the interval.
  *
  * Adaptive vsync is implemented for some glX drivers with
- * GLX_EXT_swap_control_tear, and for some Windows drivers with
- * WGL_EXT_swap_control_tear.
+ * GLX_EXT_swap_control_tear:
+ *
+ * https://www.opengl.org/registry/specs/EXT/glx_swap_control_tear.txt
+ *
+ * and for some Windows drivers with WGL_EXT_swap_control_tear:
+ *
+ * https://www.opengl.org/registry/specs/EXT/wgl_swap_control_tear.txt
  *
  * Read more on the Khronos wiki:
  * https://www.khronos.org/opengl/wiki/Swap_Interval#Adaptive_Vsync
@@ -2154,8 +1875,6 @@ extern DECLSPEC int SDLCALL SDL_GL_GetSwapInterval(void);
  * extra.
  *
  * \param window the window to change
- *
- * \since This function is available since SDL 2.0.0.
  */
 extern DECLSPEC void SDLCALL SDL_GL_SwapWindow(SDL_Window * window);
 
@@ -2163,8 +1882,6 @@ extern DECLSPEC void SDLCALL SDL_GL_SwapWindow(SDL_Window * window);
  * Delete an OpenGL context.
  *
  * \param context the OpenGL context to be deleted
- *
- * \since This function is available since SDL 2.0.0.
  *
  * \sa SDL_GL_CreateContext
  */

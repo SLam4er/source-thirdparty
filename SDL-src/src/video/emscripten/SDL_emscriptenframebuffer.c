@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2021 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,15 +20,14 @@
 */
 #include "../../SDL_internal.h"
 
-#ifdef SDL_VIDEO_DRIVER_EMSCRIPTEN
+#if SDL_VIDEO_DRIVER_EMSCRIPTEN
 
 #include "SDL_emscriptenvideo.h"
 #include "SDL_emscriptenframebuffer.h"
 #include "SDL_hints.h"
 
-#include <emscripten/threading.h>
 
-int Emscripten_CreateWindowFramebuffer(_THIS, SDL_Window *window, Uint32 *format, void **pixels, int *pitch)
+int Emscripten_CreateWindowFramebuffer(_THIS, SDL_Window * window, Uint32 * format, void ** pixels, int *pitch)
 {
     SDL_Surface *surface;
     const Uint32 surface_format = SDL_PIXELFORMAT_BGR888;
@@ -37,13 +36,13 @@ int Emscripten_CreateWindowFramebuffer(_THIS, SDL_Window *window, Uint32 *format
     Uint32 Rmask, Gmask, Bmask, Amask;
 
     /* Free the old framebuffer surface */
-    SDL_WindowData *data = (SDL_WindowData *)window->driverdata;
+    SDL_WindowData *data = (SDL_WindowData *) window->driverdata;
     surface = data->surface;
     SDL_FreeSurface(surface);
 
     /* Create a new one */
     SDL_PixelFormatEnumToMasks(surface_format, &bpp, &Rmask, &Gmask, &Bmask, &Amask);
-    SDL_GetWindowSizeInPixels(window, &w, &h);
+    SDL_GetWindowSize(window, &w, &h);
 
     surface = SDL_CreateRGBSurface(0, w, h, bpp, Rmask, Gmask, Bmask, Amask);
     if (!surface) {
@@ -58,11 +57,11 @@ int Emscripten_CreateWindowFramebuffer(_THIS, SDL_Window *window, Uint32 *format
     return 0;
 }
 
-int Emscripten_UpdateWindowFramebuffer(_THIS, SDL_Window *window, const SDL_Rect *rects, int numrects)
+int Emscripten_UpdateWindowFramebuffer(_THIS, SDL_Window * window, const SDL_Rect * rects, int numrects)
 {
     SDL_Surface *surface;
 
-    SDL_WindowData *data = (SDL_WindowData *)window->driverdata;
+    SDL_WindowData *data = (SDL_WindowData *) window->driverdata;
     surface = data->surface;
     if (!surface) {
         return SDL_SetError("Couldn't find framebuffer surface for window");
@@ -70,8 +69,7 @@ int Emscripten_UpdateWindowFramebuffer(_THIS, SDL_Window *window, const SDL_Rect
 
     /* Send the data to the display */
 
-    /* *INDENT-OFF* */ /* clang-format off */
-    MAIN_THREAD_EM_ASM({
+    EM_ASM_INT({
         var w = $0;
         var h = $1;
         var pixels = $2;
@@ -89,7 +87,7 @@ int Emscripten_UpdateWindowFramebuffer(_THIS, SDL_Window *window, const SDL_Rect
             SDL2.imageCtx = SDL2.ctx;
         }
         var data = SDL2.image.data;
-        var src = pixels / 4;
+        var src = pixels >> 2;
         var dst = 0;
         var num;
         if (typeof CanvasPixelArray !== 'undefined' && data instanceof CanvasPixelArray) {
@@ -121,7 +119,7 @@ int Emscripten_UpdateWindowFramebuffer(_THIS, SDL_Window *window, const SDL_Rect
             //      }
             // the following code is faster though, because
             // .set() is almost free - easily 10x faster due to
-            // native SDL_memcpy efficiencies, and the remaining loop
+            // native memcpy efficiencies, and the remaining loop
             // just stores, not load + store, so it is faster
             data32.set(HEAP32.subarray(src, src + num));
             var data8 = SDL2.data8;
@@ -156,6 +154,7 @@ int Emscripten_UpdateWindowFramebuffer(_THIS, SDL_Window *window, const SDL_Rect
         }
 
         SDL2.ctx.putImageData(SDL2.image, 0, 0);
+        return 0;
     }, surface->w, surface->h, surface->pixels);
 
     if (emscripten_has_asyncify() && SDL_GetHintBoolean(SDL_HINT_EMSCRIPTEN_ASYNCIFY, SDL_TRUE)) {
@@ -166,9 +165,9 @@ int Emscripten_UpdateWindowFramebuffer(_THIS, SDL_Window *window, const SDL_Rect
     return 0;
 }
 
-void Emscripten_DestroyWindowFramebuffer(_THIS, SDL_Window *window)
+void Emscripten_DestroyWindowFramebuffer(_THIS, SDL_Window * window)
 {
-    SDL_WindowData *data = (SDL_WindowData *)window->driverdata;
+    SDL_WindowData *data = (SDL_WindowData *) window->driverdata;
 
     SDL_FreeSurface(data->surface);
     data->surface = NULL;

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2021 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#ifdef SDL_VIDEO_DRIVER_COCOA
+#if SDL_VIDEO_DRIVER_COCOA
 
 #include "SDL_timer.h"
 
@@ -45,10 +45,9 @@ static SDL_Window *FindSDLWindowForNSWindow(NSWindow *win)
     SDL_VideoDevice *device = SDL_GetVideoDevice();
     if (device && device->windows) {
         for (sdlwindow = device->windows; sdlwindow; sdlwindow = sdlwindow->next) {
-            NSWindow *nswindow = ((__bridge SDL_WindowData *) sdlwindow->driverdata).nswindow;
-            if (win == nswindow) {
+            NSWindow *nswindow = ((SDL_WindowData *) sdlwindow->driverdata)->nswindow;
+            if (win == nswindow)
                 return sdlwindow;
-            }
         }
     }
 
@@ -122,6 +121,7 @@ static void Cocoa_DispatchEvent(NSEvent *theEvent)
                                  [NSNumber numberWithBool:YES], @"ApplePersistenceIgnoreState",
                                  nil];
     [[NSUserDefaults standardUserDefaults] registerDefaults:appDefaults];
+    [appDefaults release];
 }
 
 @end // SDLApplication
@@ -138,7 +138,6 @@ static void Cocoa_DispatchEvent(NSEvent *theEvent)
 
 - (id)init;
 - (void)localeDidChange:(NSNotification *)notification;
-- (BOOL)applicationSupportsSecureRestorableState:(NSApplication *)app;
 @end
 
 @implementation SDLAppDelegate : NSObject
@@ -183,6 +182,8 @@ static void Cocoa_DispatchEvent(NSEvent *theEvent)
             removeEventHandlerForEventClass:kInternetEventClass
                                  andEventID:kAEGetURL];
     }
+
+    [super dealloc];
 }
 
 - (void)windowWillClose:(NSNotification *)notification;
@@ -194,9 +195,8 @@ static void Cocoa_DispatchEvent(NSEvent *theEvent)
     }
 
     /* Don't do anything if this was not an SDL window that was closed */
-    if (FindSDLWindowForNSWindow(win) == NULL) {
+    if (FindSDLWindowForNSWindow(win) == NULL)
         return;
-    }
 
     /* HACK: Make the next window in the z-order key when the key window is
      * closed. The custom event loop and/or windowing code we have seems to
@@ -232,7 +232,6 @@ static void Cocoa_DispatchEvent(NSEvent *theEvent)
 
 - (void)focusSomeWindow:(NSNotification *)aNotification
 {
-    SDL_VideoDevice *device;
     /* HACK: Ignore the first call. The application gets a
      * applicationDidBecomeActive: a little bit after the first window is
      * created, and if we don't ignore it, a window that has been created with
@@ -250,7 +249,7 @@ static void Cocoa_DispatchEvent(NSEvent *theEvent)
         return;
     }
 
-    device = SDL_GetVideoDevice();
+    SDL_VideoDevice *device = SDL_GetVideoDevice();
     if (device && device->windows) {
         SDL_Window *window = device->windows;
         int i;
@@ -311,27 +310,12 @@ static void Cocoa_DispatchEvent(NSEvent *theEvent)
     SDL_SendDropComplete(NULL);
 }
 
-- (BOOL)applicationSupportsSecureRestorableState:(NSApplication *)app
-{
-    // This just tells Cocoa that we didn't do any custom save state magic for the app,
-    // so the system is safe to use NSSecureCoding internally, instead of using unencrypted
-    // save states for backwards compatibility. If we don't return YES here, we'll get a
-    // warning on the console at startup:
-    //
-    // ```
-    // WARNING: Secure coding is not enabled for restorable state! Enable secure coding by implementing NSApplicationDelegate.applicationSupportsSecureRestorableState: and returning YES.
-    // ```
-    //
-    // More-detailed explanation:
-    // https://stackoverflow.com/questions/77283578/sonoma-and-nsapplicationdelegate-applicationsupportssecurerestorablestate/77320845#77320845
-    return YES;
-}
-
 @end
 
 static SDLAppDelegate *appDelegate = nil;
 
-static NSString *GetApplicationName(void)
+static NSString *
+GetApplicationName(void)
 {
     NSString *appName;
 
@@ -348,9 +332,9 @@ static NSString *GetApplicationName(void)
     return appName;
 }
 
-static bool LoadMainMenuNibIfAvailable(void)
+static bool
+LoadMainMenuNibIfAvailable(void)
 {
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1080
     NSDictionary *infoDict;
     NSString *mainNibFileName;
     bool success = false;
@@ -361,19 +345,17 @@ static bool LoadMainMenuNibIfAvailable(void)
     infoDict = [[NSBundle mainBundle] infoDictionary];
     if (infoDict) {
         mainNibFileName = [infoDict valueForKey:@"NSMainNibFile"];
-
+        
         if (mainNibFileName) {
             success = [[NSBundle mainBundle] loadNibNamed:mainNibFileName owner:[NSApplication sharedApplication] topLevelObjects:nil];
         }
     }
-
+    
     return success;
-#else
-    return false;
-#endif
 }
 
-static void CreateApplicationMenus(void)
+static void
+CreateApplicationMenus(void)
 {
     NSString *appName;
     NSString *title;
@@ -386,11 +368,14 @@ static void CreateApplicationMenus(void)
     if (NSApp == nil) {
         return;
     }
-
+    
     mainMenu = [[NSMenu alloc] init];
 
     /* Create the main menu bar */
     [NSApp setMainMenu:mainMenu];
+
+    [mainMenu release];  /* we're done with it, let NSApp own it. */
+    mainMenu = nil;
 
     /* Create the application menu */
     appName = GetApplicationName();
@@ -407,10 +392,11 @@ static void CreateApplicationMenus(void)
     [appleMenu addItem:[NSMenuItem separatorItem]];
 
     serviceMenu = [[NSMenu alloc] initWithTitle:@""];
-    menuItem = [appleMenu addItemWithTitle:@"Services" action:nil keyEquivalent:@""];
+    menuItem = (NSMenuItem *)[appleMenu addItemWithTitle:@"Services" action:nil keyEquivalent:@""];
     [menuItem setSubmenu:serviceMenu];
 
     [NSApp setServicesMenu:serviceMenu];
+    [serviceMenu release];
 
     [appleMenu addItem:[NSMenuItem separatorItem]];
 
@@ -431,9 +417,12 @@ static void CreateApplicationMenus(void)
     menuItem = [[NSMenuItem alloc] initWithTitle:@"" action:nil keyEquivalent:@""];
     [menuItem setSubmenu:appleMenu];
     [[NSApp mainMenu] addItem:menuItem];
+    [menuItem release];
 
     /* Tell the application object that this is now the application menu */
     [NSApp setAppleMenu:appleMenu];
+    [appleMenu release];
+
 
     /* Create the window menu */
     windowMenu = [[NSMenu alloc] initWithTitle:@"Window"];
@@ -444,25 +433,31 @@ static void CreateApplicationMenus(void)
     [windowMenu addItemWithTitle:@"Minimize" action:@selector(performMiniaturize:) keyEquivalent:@"m"];
 
     [windowMenu addItemWithTitle:@"Zoom" action:@selector(performZoom:) keyEquivalent:@""];
-
-    /* Add the fullscreen toggle menu option. */
-    /* Cocoa should update the title to Enter or Exit Full Screen automatically.
-     * But if not, then just fallback to Toggle Full Screen.
-     */
-    menuItem = [[NSMenuItem alloc] initWithTitle:@"Toggle Full Screen" action:@selector(toggleFullScreen:) keyEquivalent:@"f"];
-    [menuItem setKeyEquivalentModifierMask:NSEventModifierFlagControl | NSEventModifierFlagCommand];
-    [windowMenu addItem:menuItem];
+    
+    /* Add the fullscreen toggle menu option, if supported */
+    if (floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_6) {
+        /* Cocoa should update the title to Enter or Exit Full Screen automatically.
+         * But if not, then just fallback to Toggle Full Screen.
+         */
+        menuItem = [[NSMenuItem alloc] initWithTitle:@"Toggle Full Screen" action:@selector(toggleFullScreen:) keyEquivalent:@"f"];
+        [menuItem setKeyEquivalentModifierMask:NSEventModifierFlagControl | NSEventModifierFlagCommand];
+        [windowMenu addItem:menuItem];
+        [menuItem release];
+    }
 
     /* Put menu into the menubar */
     menuItem = [[NSMenuItem alloc] initWithTitle:@"Window" action:nil keyEquivalent:@""];
     [menuItem setSubmenu:windowMenu];
     [[NSApp mainMenu] addItem:menuItem];
+    [menuItem release];
 
     /* Tell the application object that this is now the window menu */
     [NSApp setWindowsMenu:windowMenu];
+    [windowMenu release];
 }
 
-void Cocoa_RegisterApp(void)
+void
+Cocoa_RegisterApp(void)
 { @autoreleasepool
 {
     /* This can get called more than once! Be careful what you initialize! */
@@ -483,7 +478,7 @@ void Cocoa_RegisterApp(void)
          */
         if ([NSApp mainMenu] == nil) {
             bool nibLoaded;
-
+            
             nibLoaded = LoadMainMenuNibIfAvailable();
             if (!nibLoaded) {
                 CreateApplicationMenus();
@@ -520,8 +515,22 @@ void Cocoa_RegisterApp(void)
     }
 }}
 
-int Cocoa_PumpEventsUntilDate(_THIS, NSDate *expiration, bool accumulate)
+int
+Cocoa_PumpEventsUntilDate(_THIS, NSDate *expiration, bool accumulate)
 {
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
+    /* Update activity every 30 seconds to prevent screensaver */
+    SDL_VideoData *data = (SDL_VideoData *)_this->driverdata;
+    if (_this->suspend_screensaver && !data->screensaver_use_iopm) {
+        Uint32 now = SDL_GetTicks();
+        if (!data->screensaver_activity ||
+            SDL_TICKS_PASSED(now, data->screensaver_activity + 30000)) {
+            UpdateSystemActivity(UsrActivity);
+            data->screensaver_activity = now;
+        }
+    }
+#endif
+
     for ( ; ; ) {
         NSEvent *event = [NSApp nextEventMatchingMask:NSEventMaskAny untilDate:expiration inMode:NSDefaultRunLoopMode dequeue:YES ];
         if ( event == nil ) {
@@ -541,7 +550,8 @@ int Cocoa_PumpEventsUntilDate(_THIS, NSDate *expiration, bool accumulate)
     return 1;
 }
 
-int Cocoa_WaitEventTimeout(_THIS, int timeout)
+int
+Cocoa_WaitEventTimeout(_THIS, int timeout)
 { @autoreleasepool
 {
     if (timeout > 0) {
@@ -556,7 +566,8 @@ int Cocoa_WaitEventTimeout(_THIS, int timeout)
     return 1;
 }}
 
-void Cocoa_PumpEvents(_THIS)
+void
+Cocoa_PumpEvents(_THIS)
 { @autoreleasepool
 {
     Cocoa_PumpEventsUntilDate(_this, [NSDate distantPast], true);
@@ -565,11 +576,13 @@ void Cocoa_PumpEvents(_THIS)
 void Cocoa_SendWakeupEvent(_THIS, SDL_Window *window)
 { @autoreleasepool
 {
+    NSWindow *nswindow = ((SDL_WindowData *) window->driverdata)->nswindow;
+
     NSEvent* event = [NSEvent otherEventWithType: NSEventTypeApplicationDefined
                                     location: NSMakePoint(0,0)
                                modifierFlags: 0
                                    timestamp: 0.0
-                                windowNumber: ((__bridge SDL_WindowData *) window->driverdata).window_number
+                                windowNumber: nswindow.windowNumber
                                      context: nil
                                      subtype: 0
                                        data1: 0
@@ -578,14 +591,19 @@ void Cocoa_SendWakeupEvent(_THIS, SDL_Window *window)
     [NSApp postEvent: event atStart: YES];
 }}
 
-void Cocoa_SuspendScreenSaver(_THIS)
+void
+Cocoa_SuspendScreenSaver(_THIS)
 { @autoreleasepool
 {
-    SDL_VideoData *data = (__bridge SDL_VideoData *)_this->driverdata;
+    SDL_VideoData *data = (SDL_VideoData *)_this->driverdata;
 
-    if (data.screensaver_assertion) {
-        IOPMAssertionRelease(data.screensaver_assertion);
-        data.screensaver_assertion = kIOPMNullAssertionID;
+    if (!data->screensaver_use_iopm) {
+        return;
+    }
+
+    if (data->screensaver_assertion) {
+        IOPMAssertionRelease(data->screensaver_assertion);
+        data->screensaver_assertion = 0;
     }
 
     if (_this->suspend_screensaver) {
@@ -594,13 +612,11 @@ void Cocoa_SuspendScreenSaver(_THIS)
          * seen by OS X power users. there's an additional optional human-readable
          * (localized) reason parameter which we don't set.
          */
-        IOPMAssertionID assertion = kIOPMNullAssertionID;
         NSString *name = [GetApplicationName() stringByAppendingString:@" using SDL_DisableScreenSaver"];
         IOPMAssertionCreateWithDescription(kIOPMAssertPreventUserIdleDisplaySleep,
-                                           (__bridge CFStringRef) name,
+                                           (CFStringRef) name,
                                            NULL, NULL, NULL, 0, NULL,
-                                           &assertion);
-        data.screensaver_assertion = assertion;
+                                           &data->screensaver_assertion);
     }
 }}
 

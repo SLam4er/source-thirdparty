@@ -53,7 +53,6 @@ SDLVisualTest_GetNextVariation(SDLVisualTest_Variator* variator)
         SDLTest_LogError("variator argument cannot be NULL");
         return NULL;
     }
-
     switch(variator->type)
     {
         case SDL_VARIATOR_EXHAUSTIVE:
@@ -78,7 +77,6 @@ void SDLVisualTest_FreeVariator(SDLVisualTest_Variator* variator)
         SDLTest_LogError("variator argument cannot be NULL");
         return;
     }
-
     switch(variator->type)
     {
         case SDL_VARIATOR_EXHAUSTIVE:

@@ -39,7 +39,6 @@ NextVariation(SDLVisualTest_Variation* variation,
         return 0;
     if(carry == 0)
         return 1;
-
     SDLTest_LogError("NextVariation() failed");
     return -1;
 }

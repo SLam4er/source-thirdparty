@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2021 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,12 +20,11 @@
 #endif
 
 #include "SDL.h"
-#include "testutils.h"
 
-#define WINDOW_WIDTH  640
-#define WINDOW_HEIGHT 480
-#define NUM_SPRITES   100
-#define MAX_SPEED     1
+#define WINDOW_WIDTH    640
+#define WINDOW_HEIGHT   480
+#define NUM_SPRITES     100
+#define MAX_SPEED       1
 
 static SDL_Texture *sprite;
 static SDL_Rect positions[NUM_SPRITES];
@@ -43,7 +42,57 @@ quit(int rc)
     exit(rc);
 }
 
-void MoveSprites(void)
+int
+LoadSprite(char *file)
+{
+    SDL_Surface *temp;
+
+    /* Load the sprite image */
+    temp = SDL_LoadBMP(file);
+    if (temp == NULL) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load %s: %s\n", file, SDL_GetError());
+        return (-1);
+    }
+    sprite_w = temp->w;
+    sprite_h = temp->h;
+
+    /* Set transparent pixel as the pixel at (0,0) */
+    if (temp->format->palette) {
+        SDL_SetColorKey(temp, SDL_TRUE, *(Uint8 *) temp->pixels);
+    } else {
+        switch (temp->format->BitsPerPixel) {
+        case 15:
+            SDL_SetColorKey(temp, SDL_TRUE,
+                            (*(Uint16 *) temp->pixels) & 0x00007FFF);
+            break;
+        case 16:
+            SDL_SetColorKey(temp, SDL_TRUE, *(Uint16 *) temp->pixels);
+            break;
+        case 24:
+            SDL_SetColorKey(temp, SDL_TRUE,
+                            (*(Uint32 *) temp->pixels) & 0x00FFFFFF);
+            break;
+        case 32:
+            SDL_SetColorKey(temp, SDL_TRUE, *(Uint32 *) temp->pixels);
+            break;
+        }
+    }
+
+    /* Create textures from the image */
+    sprite = SDL_CreateTextureFromSurface(renderer, temp);
+    if (!sprite) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create texture: %s\n", SDL_GetError());
+        SDL_FreeSurface(temp);
+        return (-1);
+    }
+    SDL_FreeSurface(temp);
+
+    /* We're ready to roll. :) */
+    return (0);
+}
+
+void
+MoveSprites()
 {
     int i;
     int window_w = WINDOW_WIDTH;
@@ -77,7 +126,7 @@ void MoveSprites(void)
     SDL_RenderPresent(renderer);
 }
 
-void loop(void)
+void loop()
 {
     SDL_Event event;
 
@@ -95,10 +144,12 @@ void loop(void)
 #endif
 }
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
     SDL_Window *window;
     int i;
+
 
     /* Enable standard application logging */
     SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
@@ -107,14 +158,12 @@ int main(int argc, char *argv[])
         quit(2);
     }
 
-    sprite = LoadTexture(renderer, "icon.bmp", SDL_TRUE, &sprite_w, &sprite_h);
-
-    if (!sprite) {
+    if (LoadSprite("icon.bmp") < 0) {
         quit(2);
     }
 
     /* Initialize the sprite positions */
-    srand((unsigned int)time(NULL));
+    srand(time(NULL));
     for (i = 0; i < NUM_SPRITES; ++i) {
         positions[i].x = rand() % (WINDOW_WIDTH - sprite_w);
         positions[i].y = rand() % (WINDOW_HEIGHT - sprite_h);

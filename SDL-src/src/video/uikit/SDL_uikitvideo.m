@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2021 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#ifdef SDL_VIDEO_DRIVER_UIKIT
+#if SDL_VIDEO_DRIVER_UIKIT
 
 #import <UIKit/UIKit.h>
 
@@ -39,7 +39,6 @@
 #include "SDL_uikitclipboard.h"
 #include "SDL_uikitvulkan.h"
 #include "SDL_uikitmetalview.h"
-#include "SDL_uikitmessagebox.h"
 
 #define UIKITVID_DRIVER_NAME "uikit"
 
@@ -61,7 +60,8 @@ static void UIKit_DeleteDevice(SDL_VideoDevice * device)
     }
 }
 
-static SDL_VideoDevice *UIKit_CreateDevice(void)
+static SDL_VideoDevice *
+UIKit_CreateDevice(int devindex)
 {
     @autoreleasepool {
         SDL_VideoDevice *device;
@@ -98,9 +98,8 @@ static SDL_VideoDevice *UIKit_CreateDevice(void)
         device->GetWindowWMInfo = UIKit_GetWindowWMInfo;
         device->GetDisplayUsableBounds = UIKit_GetDisplayUsableBounds;
         device->GetDisplayDPI = UIKit_GetDisplayDPI;
-        device->GetWindowSizeInPixels = UIKit_GetWindowSizeInPixels;
 
-#ifdef SDL_IPHONE_KEYBOARD
+#if SDL_IPHONE_KEYBOARD
         device->HasScreenKeyboardSupport = UIKit_HasScreenKeyboardSupport;
         device->ShowScreenKeyboard = UIKit_ShowScreenKeyboard;
         device->HideScreenKeyboard = UIKit_HideScreenKeyboard;
@@ -113,7 +112,7 @@ static SDL_VideoDevice *UIKit_CreateDevice(void)
         device->HasClipboardText = UIKit_HasClipboardText;
 
         /* OpenGL (ES) functions */
-#if defined(SDL_VIDEO_OPENGL_ES) || defined(SDL_VIDEO_OPENGL_ES2)
+#if SDL_VIDEO_OPENGL_ES || SDL_VIDEO_OPENGL_ES2
         device->GL_MakeCurrent      = UIKit_GL_MakeCurrent;
         device->GL_GetDrawableSize  = UIKit_GL_GetDrawableSize;
         device->GL_SwapWindow       = UIKit_GL_SwapWindow;
@@ -124,7 +123,7 @@ static SDL_VideoDevice *UIKit_CreateDevice(void)
 #endif
         device->free = UIKit_DeleteDevice;
 
-#ifdef SDL_VIDEO_VULKAN
+#if SDL_VIDEO_VULKAN
         device->Vulkan_LoadLibrary = UIKit_Vulkan_LoadLibrary;
         device->Vulkan_UnloadLibrary = UIKit_Vulkan_UnloadLibrary;
         device->Vulkan_GetInstanceExtensions
@@ -133,7 +132,7 @@ static SDL_VideoDevice *UIKit_CreateDevice(void)
         device->Vulkan_GetDrawableSize = UIKit_Vulkan_GetDrawableSize;
 #endif
 
-#ifdef SDL_VIDEO_METAL
+#if SDL_VIDEO_METAL
         device->Metal_CreateView = UIKit_Metal_CreateView;
         device->Metal_DestroyView = UIKit_Metal_DestroyView;
         device->Metal_GetLayer = UIKit_Metal_GetLayer;
@@ -148,12 +147,12 @@ static SDL_VideoDevice *UIKit_CreateDevice(void)
 
 VideoBootStrap UIKIT_bootstrap = {
     UIKITVID_DRIVER_NAME, "SDL UIKit video driver",
-    UIKit_CreateDevice,
-    UIKit_ShowMessageBox
+    UIKit_CreateDevice
 };
 
 
-int UIKit_VideoInit(_THIS)
+int
+UIKit_VideoInit(_THIS)
 {
     _this->gl_config.driver_loaded = 1;
 
@@ -167,7 +166,8 @@ int UIKit_VideoInit(_THIS)
     return 0;
 }
 
-void UIKit_VideoQuit(_THIS)
+void
+UIKit_VideoQuit(_THIS)
 {
     SDL_QuitGCKeyboard();
     SDL_QuitGCMouse();
@@ -175,7 +175,8 @@ void UIKit_VideoQuit(_THIS)
     UIKit_QuitModes(_this);
 }
 
-void UIKit_SuspendScreenSaver(_THIS)
+void
+UIKit_SuspendScreenSaver(_THIS)
 {
     @autoreleasepool {
         /* Ignore ScreenSaver API calls if the idle timer hint has been set. */
@@ -189,12 +190,14 @@ void UIKit_SuspendScreenSaver(_THIS)
     }
 }
 
-SDL_bool UIKit_IsSystemVersionAtLeast(double version)
+SDL_bool
+UIKit_IsSystemVersionAtLeast(double version)
 {
     return [[UIDevice currentDevice].systemVersion doubleValue] >= version;
 }
 
-CGRect UIKit_ComputeViewFrame(SDL_Window *window, UIScreen *screen)
+CGRect
+UIKit_ComputeViewFrame(SDL_Window *window, UIScreen *screen)
 {
     SDL_WindowData *data = (__bridge SDL_WindowData *) window->driverdata;
     CGRect frame = screen.bounds;
@@ -206,6 +209,15 @@ CGRect UIKit_ComputeViewFrame(SDL_Window *window, UIScreen *screen)
         frame = data.uiwindow.bounds;
     }
 
+#if !TARGET_OS_TV && (__IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_7_0)
+    BOOL hasiOS7 = UIKit_IsSystemVersionAtLeast(7.0);
+
+    /* The view should always show behind the status bar in iOS 7+. */
+    if (!hasiOS7 && !(window->flags & (SDL_WINDOW_BORDERLESS|SDL_WINDOW_FULLSCREEN))) {
+        frame = screen.applicationFrame;
+    }
+#endif
+
 #if !TARGET_OS_TV
     /* iOS 10 seems to have a bug where, in certain conditions, putting the
      * device to sleep with the a landscape-only app open, re-orienting the
@@ -215,24 +227,26 @@ CGRect UIKit_ComputeViewFrame(SDL_Window *window, UIScreen *screen)
      * https://bugzilla.libsdl.org/show_bug.cgi?id=3505
      * https://bugzilla.libsdl.org/show_bug.cgi?id=3465
      * https://forums.developer.apple.com/thread/65337 */
-    UIInterfaceOrientation orient = [UIApplication sharedApplication].statusBarOrientation;
-    BOOL landscape = UIInterfaceOrientationIsLandscape(orient) ||
-                    !(UIKit_GetSupportedOrientations(window) & (UIInterfaceOrientationMaskPortrait | UIInterfaceOrientationMaskPortraitUpsideDown));
-    BOOL fullscreen = CGRectEqualToRect(screen.bounds, frame);
+    if (UIKit_IsSystemVersionAtLeast(8.0)) {
+        UIInterfaceOrientation orient = [UIApplication sharedApplication].statusBarOrientation;
+        BOOL landscape = UIInterfaceOrientationIsLandscape(orient);
+        BOOL fullscreen = CGRectEqualToRect(screen.bounds, frame);
 
-    /* The orientation flip doesn't make sense when the window is smaller
-     * than the screen (iPad Split View, for example). */
-    if (fullscreen && (landscape != (frame.size.width > frame.size.height))) {
-        float height = frame.size.width;
-        frame.size.width = frame.size.height;
-        frame.size.height = height;
+        /* The orientation flip doesn't make sense when the window is smaller
+         * than the screen (iPad Split View, for example). */
+        if (fullscreen && (landscape != (frame.size.width > frame.size.height))) {
+            float height = frame.size.width;
+            frame.size.width = frame.size.height;
+            frame.size.height = height;
+        }
     }
 #endif
 
     return frame;
 }
 
-void UIKit_ForceUpdateHomeIndicator(void)
+void
+UIKit_ForceUpdateHomeIndicator()
 {
 #if !TARGET_OS_TV
     /* Force the main SDL window to re-evaluate home indicator state */
@@ -264,16 +278,11 @@ void UIKit_ForceUpdateHomeIndicator(void)
  */
 
 #if !defined(SDL_VIDEO_DRIVER_COCOA)
-void SDL_NSLog(const char *prefix, const char *text)
+void SDL_NSLog(const char *text)
 {
     @autoreleasepool {
-        NSString *nsText = [NSString stringWithUTF8String:text];
-        if (prefix) {
-            NSString *nsPrefix = [NSString stringWithUTF8String:prefix];
-            NSLog(@"%@: %@", nsPrefix, nsText);
-        } else {
-            NSLog(@"%@", nsText);
-        }
+        NSString *str = [NSString stringWithUTF8String:text];
+        NSLog(@"%@", str);
     }
 }
 #endif /* SDL_VIDEO_DRIVER_COCOA */

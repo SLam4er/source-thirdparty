@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2021 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -10,28 +10,23 @@
   freely.
 */
 
-/* quiet windows compiler warnings */
-#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
-#define _CRT_SECURE_NO_WARNINGS
-#endif
-
 #include <stdio.h>
 
 #include "SDL.h"
-#include "testutils.h"
 
 static size_t
 widelen(char *data)
 {
     size_t len = 0;
-    Uint32 *p = (Uint32 *)data;
+    Uint32 *p = (Uint32 *) data;
     while (*p++) {
         ++len;
     }
     return len;
 }
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
     const char *formats[] = {
         "UTF8",
@@ -47,8 +42,6 @@ int main(int argc, char *argv[])
         "UCS4",
         "UCS-4",
     };
-
-    char *fname;
     char buffer[BUFSIZ];
     char *ucs4;
     char *test[2];
@@ -59,13 +52,14 @@ int main(int argc, char *argv[])
     /* Enable standard application logging */
     SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
 
-    fname = GetResourceFilename(argc > 1 ? argv[1] : NULL, "utf8.txt");
-    file = fopen(fname, "rb");
-    if (!file) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to open %s\n", fname);
-        return 1;
+    if (!argv[1]) {
+        argv[1] = "utf8.txt";
     }
-    SDL_free(fname);
+    file = fopen(argv[1], "rb");
+    if (!file) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to open %s\n", argv[1]);
+        return (1);
+    }
 
     while (fgets(buffer, sizeof(buffer), file)) {
         /* Convert to UCS-4 */
@@ -86,11 +80,9 @@ int main(int argc, char *argv[])
         }
         test[0] = SDL_iconv_string("UTF-8", "UCS-4", ucs4, len);
         SDL_free(ucs4);
-        (void)fputs(test[0], stdout);
+        fputs(test[0], stdout);
         SDL_free(test[0]);
     }
-    (void)fclose(file);
-
-    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "Total errors: %d\n", errors);
-    return errors ? errors + 1 : 0;
+    fclose(file);
+    return (errors ? errors + 1 : 0);
 }

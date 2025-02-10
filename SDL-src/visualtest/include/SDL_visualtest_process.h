@@ -8,8 +8,8 @@
 #include <SDL_platform.h>
 
 #if defined(__WIN32__)
-#include <windows.h>
-#include <shlwapi.h>
+#include <Windows.h>
+#include <Shlwapi.h>
 #elif defined(__LINUX__)
 #include <unistd.h>
 #else

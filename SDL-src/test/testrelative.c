@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2021 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -28,49 +28,40 @@ SDL_Rect rect;
 SDL_Event event;
 
 static void
-DrawRects(SDL_Renderer *renderer)
+DrawRects(SDL_Renderer * renderer)
 {
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
     SDL_RenderFillRect(renderer, &rect);
 }
 
 static void
-loop(void)
-{
+loop(){
     /* Check for events */
     while (SDL_PollEvent(&event)) {
         SDLTest_CommonEvent(state, &event, &done);
-        switch (event.type) {
+        switch(event.type) {
         case SDL_MOUSEMOTION:
-        {
-            rect.x += event.motion.xrel;
-            rect.y += event.motion.yrel;
-        } break;
+            {
+                rect.x += event.motion.xrel;
+                rect.y += event.motion.yrel;
+            }
+            break;
         }
     }
     for (i = 0; i < state->num_windows; ++i) {
         SDL_Rect viewport;
         SDL_Renderer *renderer = state->renderers[i];
-        if (state->windows[i] == NULL) {
+        if (state->windows[i] == NULL)
             continue;
-        }
         SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
         SDL_RenderClear(renderer);
 
         /* Wrap the cursor rectangle at the screen edges to keep it visible */
         SDL_RenderGetViewport(renderer, &viewport);
-        if (rect.x < viewport.x) {
-            rect.x += viewport.w;
-        }
-        if (rect.y < viewport.y) {
-            rect.y += viewport.h;
-        }
-        if (rect.x > viewport.x + viewport.w) {
-            rect.x -= viewport.w;
-        }
-        if (rect.y > viewport.y + viewport.h) {
-            rect.y -= viewport.h;
-        }
+        if (rect.x < viewport.x) rect.x += viewport.w;
+        if (rect.y < viewport.y) rect.y += viewport.h;
+        if (rect.x > viewport.x + viewport.w) rect.x -= viewport.w;
+        if (rect.y > viewport.y + viewport.h) rect.y -= viewport.h;
 
         DrawRects(renderer);
 
@@ -83,7 +74,8 @@ loop(void)
 #endif
 }
 
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
 
     /* Enable standard application logging */
@@ -110,9 +102,9 @@ int main(int argc, char *argv[])
     }
 
     srand((unsigned int)time(NULL));
-    if (SDL_SetRelativeMouseMode(SDL_TRUE) < 0) {
+    if(SDL_SetRelativeMouseMode(SDL_TRUE) < 0) {
         return 3;
-    }
+    };
 
     rect.x = DEFAULT_WINDOW_WIDTH / 2;
     rect.y = DEFAULT_WINDOW_HEIGHT / 2;
@@ -125,7 +117,7 @@ int main(int argc, char *argv[])
 #else
     while (!done) {
         loop();
-    }
+        }
 #endif
     SDLTest_CommonQuit(state);
     return 0;

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2020 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -24,7 +24,8 @@
 #include <string.h>
 #include <psp2/apputil.h>
 
-int SDL_SYS_OpenURL(const char *url)
+int
+SDL_SYS_OpenURL(const char *url)
 {
     SceAppUtilInitParam init_param;
     SceAppUtilBootParam boot_param;
@@ -34,9 +35,10 @@ int SDL_SYS_OpenURL(const char *url)
     sceAppUtilInit(&init_param, &boot_param);
     SDL_zero(browser_param);
     browser_param.str = url;
-    browser_param.strlen = SDL_strlen(url);
+    browser_param.strlen = strlen(url);
     sceAppUtilLaunchWebBrowser(&browser_param);
     return 0;
 }
 
 /* vi: set ts=4 sw=4 expandtab: */
+

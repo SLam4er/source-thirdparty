@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2024 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2021 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -25,18 +25,24 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /*
  * includes
  */
+#include <stdlib.h>
+#include <string.h>             /* strstr */
+#include <ctype.h>              /* isdigit */
+
 #include "SDL.h"
 
 #ifndef SDL_HAPTIC_DISABLED
 
 static SDL_Haptic *haptic;
 
+
 /**
  * @brief The entry point of this force feedback demo.
  * @param[in] argc Number of arguments.
  * @param[in] argv Array of argc arguments.
  */
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
     int i;
     char *name;
@@ -50,11 +56,11 @@ int main(int argc, char **argv)
     if (argc > 1) {
         size_t l;
         name = argv[1];
-        if ((SDL_strcmp(name, "--help") == 0) || (SDL_strcmp(name, "-h") == 0)) {
+        if ((strcmp(name, "--help") == 0) || (strcmp(name, "-h") == 0)) {
             SDL_Log("USAGE: %s [device]\n"
-                    "If device is a two-digit number it'll use it as an index, otherwise\n"
-                    "it'll use it as if it were part of the device's name.\n",
-                    argv[0]);
+                   "If device is a two-digit number it'll use it as an index, otherwise\n"
+                   "it'll use it as if it were part of the device's name.\n",
+                   argv[0]);
             return 0;
         }
 
@@ -71,28 +77,27 @@ int main(int argc, char **argv)
     SDL_Log("%d Haptic devices detected.\n", SDL_NumHaptics());
     if (SDL_NumHaptics() > 0) {
         /* We'll just use index or the first force feedback device found */
-        if (!name) {
+        if (name == NULL) {
             i = (index != -1) ? index : 0;
         }
         /* Try to find matching device */
         else {
             for (i = 0; i < SDL_NumHaptics(); i++) {
-                if (SDL_strstr(SDL_HapticName(i), name) != NULL) {
+                if (strstr(SDL_HapticName(i), name) != NULL)
                     break;
-                }
             }
 
             if (i >= SDL_NumHaptics()) {
                 SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to find device matching '%s', aborting.\n",
-                             name);
+                       name);
                 return 1;
             }
         }
 
         haptic = SDL_HapticOpen(i);
-        if (!haptic) {
+        if (haptic == NULL) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Unable to create the haptic device: %s\n",
-                         SDL_GetError());
+                   SDL_GetError());
             return 1;
         }
         SDL_Log("Device: %s\n", SDL_HapticName(i));
@@ -114,8 +119,8 @@ int main(int argc, char **argv)
     }
     SDL_Log("Playing 2 second rumble at 0.5 magnitude.\n");
     if (SDL_HapticRumblePlay(haptic, 0.5, 5000) != 0) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to play rumble: %s\n", SDL_GetError());
-        return 1;
+       SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to play rumble: %s\n", SDL_GetError() );
+       return 1;
     }
     SDL_Delay(2000);
     SDL_Log("Stopping rumble.\n");
@@ -123,15 +128,14 @@ int main(int argc, char **argv)
     SDL_Delay(2000);
     SDL_Log("Playing 2 second rumble at 0.3 magnitude.\n");
     if (SDL_HapticRumblePlay(haptic, 0.3f, 5000) != 0) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to play rumble: %s\n", SDL_GetError());
-        return 1;
+       SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Failed to play rumble: %s\n", SDL_GetError() );
+       return 1;
     }
     SDL_Delay(2000);
 
     /* Quit */
-    if (haptic) {
+    if (haptic != NULL)
         SDL_HapticClose(haptic);
-    }
     SDL_Quit();
 
     return 0;
